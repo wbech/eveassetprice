@@ -81,11 +81,7 @@ def total_item_val(typeids):
 	
 #prints each iteminfo key and value on separate line
 def print_separate(iteminfo):
-	for key, value in iteminfo.iteritems():
+	for key, value in sorted(iteminfo.items(), key= lambda e:e[1][3]):
 			print key, value	
 
 print_separate(total_item_val(all_assets(keyID,vCode,charID,usesystem)))
-
-
-
-
