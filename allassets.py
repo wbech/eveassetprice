@@ -18,9 +18,9 @@ def all_typeids(assetxml):
 		typeid= row.get('typeID')
 		quantity= row.get('quantity')
 		if typeid not in typeids:
-			typeids[typeid]= int(quantity)
+			typeids[typeid]= [int(quantity)]
 		else:
-			typeids[typeid] += int(quantity)
+			typeids[typeid][0] += int(quantity)
 	return typeids
 	
 #api used to obtain marketstat xml for item
@@ -36,7 +36,7 @@ def get_avg(marketstatxml):
 	root= tree.getroot()
 	for sell in root.iter('sell'):
 		avg= sell.find('avg').text
-	return avg
+	return float(avg)
 
 #api used to obtain quicklook xml for item
 def get_quicklook(typeid,usesystem): 
@@ -56,23 +56,35 @@ def get_item_name(quicklookxml):
 #puts average sell price for each item in assets into the dictionary iteminfo
 def all_assets(keyID,vCode,charID,usesystem):
 	typeids= all_typeids(get_assets(keyID,vCode,charID))
-	iteminfo= {}
 	for item in typeids.keys():
 		try:
 			item_name= get_item_name(get_quicklook(item,usesystem))
 			avg= get_avg(get_itemxml(item,usesystem))	
-			iteminfo[item_name]=[avg,item]
+			typeids[item].append(avg)
+			typeids[item].append(item_name)
 		except:
-			print "Error for item:",item
+			print "Error for item:", item
+			del typeids[item]
 			continue
-	return iteminfo
+	return typeids
+	
+#adds avg*quantity for each item
+#prints sum of all items
+def total_item_val(typeids):
+	sum = 0
+	for item in typeids.keys():
+		total_val= typeids[item][0]*typeids[item][1]
+		typeids[item].append(total_val)
+		sum += typeids[item][3]
+	print "Total worth of all items", "{:,}".format(sum)
+	return typeids
 	
 #prints each iteminfo key and value on separate line
 def print_separate(iteminfo):
 	for key, value in iteminfo.iteritems():
 			print key, value	
 
-print_separate(all_assets(keyID,vCode,charID,usesystem))
+print_separate(total_item_val(all_assets(keyID,vCode,charID,usesystem)))
 
 
 
